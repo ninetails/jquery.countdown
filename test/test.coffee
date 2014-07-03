@@ -1,3 +1,10 @@
+# dependencies
+expect = require 'expect.js'
+countdown = require '../jquery.countdown.coffee'
 
-m = require '../jquery.countdown.coffee'
-console.log m 'world'
+describe 'test', () ->
+  it 'Hello world test', () ->
+    expect(countdown('world')).to.be('Hello world!')
+    expect(countdown('test')).to.be('Hello test!')
+    return
+  return
