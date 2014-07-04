@@ -8,7 +8,8 @@ module.exports = (config) ->
     ]
 
     files: [
-      {pattern: 'bower_components/jquery/dist/jquery.js', included: true, watch: false}
+      {pattern: 'bower_components/jquery/dist/jquery.js', included: true, watch: false, served: true}
+      'jquery.countdown.coffee'
       'test/test.coffee'
       {pattern:'*.coffee', watched: true, included: false, served: false}
     ]
@@ -27,7 +28,7 @@ module.exports = (config) ->
       transform: ['coffeeify']
       watch: true
       debug: true
-      # noParse: ['jquery']
+      noParse: ['jquery']
 
     reporters: ['progress']
     port: 9876

@@ -25,8 +25,10 @@
   "homepage": "https://github.com/ninetails/jquery.countdown",
   "devDependencies": {
     "browserify": "^4.2.0",
+    "browserify-shim": "^3.6.0",
     "coffeeify": "^0.6.0",
     "expect.js": "^0.3.1",
+    "jquery": "^2.1.1",
     "karma": "^0.12.16",
     "karma-browserify": "^0.2.1",
     "karma-coffee-preprocessor": "^0.2.1",
