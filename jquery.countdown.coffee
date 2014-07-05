@@ -3,7 +3,84 @@ do (
   $ = if jQuery? then jQuery else {}
   window = if window? then window else {}
 ) ->
-  default_opts = {}
+  default_opts =
+    corrections:
+      months: 12
+      days: (date) ->
+        date = parse_date date.getFullYear() + '-' + (date.getMonth() + 1) + '-01'
+        date.setDate date.getDate() - 1
+        date.getDate()
+      hours: 24
+      minutes: 60
+      seconds: 60
+      milliseconds: 1000
+    standards:
+      years: (date) ->
+        date.getFullYear()
+      months: (date) ->
+        date.getMonth() + 1
+      days: (date) ->
+        date.getDate()
+      hours: (date) ->
+        date.getHours()
+      minutes: (date) ->
+        date.getMinutes()
+      seconds: (date) ->
+        date.getSeconds()
+      milliseconds: (date) ->
+        date.getMilliseconds()
+    lang: 'en'
+    messages:
+      en:
+        prefix:
+          singular: '% left'
+          plural: '% left'
+        milliseconds:
+          singular: '% millisecond'
+          plural: '% milliseconds'
+        seconds:
+          singular: '% second'
+          plural: '% seconds'
+        minutes:
+          singular: '% minute'
+          plural: '% minutes'
+        hours:
+          singular: '% hour'
+          plural: '% hours'
+        days:
+          singular: '% day'
+          plural: '% days'
+        months:
+          singular: '% month'
+          plural: '% months'
+        years:
+          singular: '% year'
+          plural: '% years'
+      pt:
+        prefix:
+          singular: 'Falta'
+          plural: 'Faltam'
+        milliseconds:
+          singular: '% milissegundo'
+          plural: '% milissegundos'
+        seconds:
+          singular: '% segundo'
+          plural: '% segundos'
+        minutes:
+          singular: '% minuto'
+          plural: '% minutos'
+        hours:
+          singular: '% hora'
+          plural: '% horas'
+        days:
+          singular: '% dia'
+          plural: '% dias'
+        months:
+          singular: '% mês'
+          plural: '% meses'
+        years:
+          singular: '% ano'
+          plural: '% anos'
 
   # date regexes
   strict_date_regex = /^([0-9]{4})\-([0-9]{2})\-([0-9]{2})([T\s]([0-9]{2}):([0-9]{2}):([0-9]{2})[:\.]?([0-9]{3})?(Z|((\+|\-)([0-9]{2}):?([0-9]{2})))?)?/i
@@ -83,29 +160,76 @@ do (
     throw new Error parsed_date.toString()
     return
 
+  get_message = (date_diff, messages, prefix) ->
+    output = '' + date_diff
+
+    if not not messages
+      message = messages[if date_diff is 1 then 'singular' else 'plural']
+      output = message.replace '%', output
+
+    if not not prefix
+      message = prefix[if date_diff is 1 then 'singular' else 'plural']
+      output = message.replace '%', output
+
+    output
+
+  date_diff = (date_end, date_start, custom_opts) ->
+    opts = $.extend {}, true, default_opts, custom_opts
+    units = []
+    output = {}
+
+    for unit, callback of opts.standards
+      output[unit] = parseInt(callback(date_end), 10) - parseInt(callback(date_start), 10)
+      units.push unit
+
+    units.reverse()
+
+    for unit, i in units
+      if output[unit] < 0 && units[i+1]?
+        output[units[i+1]] -= 1
+        if typeof opts.corrections[unit] is 'function'
+          output[unit] += opts.corrections[unit]( date_end )
+        else
+          output[unit] += opts.corrections[unit]
+
+    output
+
   countdown = (date_end, date_start, custom_opts) ->
     opts = $.extend {}, true, default_opts, custom_opts
+    messages = opts.messages[opts.lang]
+
     if not date_end
       throw new Error 'First argument is required to calculate Countdown.'
+    if not (date_end instanceof Date)
+      date_end = parse_date date_end
+    if not date_start
+      date_start = new Date()
+    if not (date_start instanceof Date)
+      date_start = parse_date date_start
 
-      # if ( typeof date_end === 'undefined' ) {
-      #   throw new Error( 'First argument is required to calculate Countdown.' ) ;
-      # }
-      # if ( ! ( date_end instanceof Date ) ) {
-      #   date_end = parse_date( date_end ) ;
-      # }
+    # date_diff = parseInt(date_end.getFullYear(), 10) - parseInt(date_start.getFullYear(), 10)
+    # if date_diff > 0
+    #   return get_message date_diff, messages.years, messages.prefix
 
-      # if ( typeof date_start === 'undefined' ) {
-      #   date_start = new Date() ;
-      # }
-      # if ( ! ( date_start instanceof Date ) ) {
-      #   date_start = parse_date( date_start ) ;
-      # }
+    # if date_diff < 60
+    #   return get_message date_diff, messages.seconds, messages.prefix
+    # else
+    #   date_diff /= 60
+    #   date_diff = Math.floor date_diff
+    #   if date_diff < 60
+    #     return get_message date_diff, messages.minutes, messages.prefix
+    #   else
+    #     date_diff /= 60
+    #     date_diff = Math.floor date_diff
+    #     return get_message date_diff, messages.hours, messages.prefix
+
     return
 
   $.Countdown = countdown
   $.Countdown.parse_date_string = parse_date_string
   $.Countdown.parse_date = parse_date
+  $.Countdown.get_message = get_message
+  $.Countdown.date_diff = date_diff
   $.Countdown.InvalidDateError = InvalidDateError
   # if module.exports?
   #   module.exports =

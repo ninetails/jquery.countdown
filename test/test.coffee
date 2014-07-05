@@ -4,6 +4,8 @@ countdown = $.Countdown
 InvalidDateError = countdown.InvalidDateError
 parse_date_string = countdown.parse_date_string
 parse_date = countdown.parse_date
+get_message = countdown.get_message
+date_diff = countdown.date_diff
 
 describe 'countdown', () ->
   describe '#parse_date_string()', () ->
@@ -233,22 +235,91 @@ describe 'countdown', () ->
       return
 
     return
+  describe '#get_message', () ->
+    it 'should return only number if message is not passed', () ->
+      expect(get_message(1)).to.be '1'
+      return
+
+    it 'should return "1 valor" if is passed 1 and message.singular = valor', () ->
+      expect(get_message(1, {singular: '% valor', plural: '% valores'})).to.be '1 valor'
+      return
+
+    it 'should return "2 valor" if is passed 1 and message.plural = valores', () ->
+      expect(get_message(2, {singular: '% valor', plural: '% valores'})).to.be '2 valores'
+      return
+
+    it 'should return "Falta 1 valor" if is passed 1 and message.singular = valor and prefix.singular = "Falta"', () ->
+      expect(get_message(1, {singular: '% valor', plural: '% valores'}, {singular: 'Falta %', plural: 'Falta %'})).to.be 'Falta 1 valor'
+      return
+
+    it 'should return "Faltam 2 valor" if is passed 1 and message.plural = valores and prefix.plural = "Faltam"', () ->
+      expect(get_message(2, {singular: '% valor', plural: '% valores'}, {singular: 'Falta %', plural: 'Faltam %'})).to.be 'Faltam 2 valores'
+      return
+
+    return
+  describe '#date_diff', () ->
+    it 'should return right values with simple comparisons', () ->
+      df = date_diff new Date(1441668306007), new Date(1404501600000)
+      expect(df.years).to.be 1
+      expect(df.months).to.be 2
+      expect(df.days).to.be 3
+      expect(df.hours).to.be 4
+      expect(df.minutes).to.be 5
+      expect(df.seconds).to.be 6
+      expect(df.milliseconds).to.be 7
+      return
+
+    it 'should give no errors between others comparisons', () ->
+      df = date_diff new Date(1436037600000), new Date(1404501600001)
+      expect(df.years).to.be 0
+      expect(df.months).to.be 11
+      expect(df.days).to.be 29
+      expect(df.hours).to.be 23
+      expect(df.minutes).to.be 59
+      expect(df.seconds).to.be 59
+      expect(df.milliseconds).to.be 999
+      return
+
+    return
   describe '#static_countdown', () ->
     it 'should warn that the first argument is required', () ->
       expect(countdown).withArgs().to.throwException /first argument is required/i
       return
 
-    # it 'should warn if first argument is not datable', () ->
-    #   expect(countdown).withArgs('I am a string').to.throwException InvalidDateError
+    it 'should warn if first argument is not datable', () ->
+      expect(countdown).withArgs('I am a string').to.throwException InvalidDateError
+      return
+
+    it 'should warn if second argument is not datable', () ->
+      expect(countdown).withArgs('2015-01-01', 'I am a string').to.throwException InvalidDateError
+      return
+
+    # it 'should give "2 seconds" when two dates have 2 seconds of difference between them', () ->
+    #   expect(countdown('2014-07-03T21:46:43', '2014-07-03T21:46:41')).to.be '2 seconds left'
     #   return
 
-    # it 'should warn if second argument is not datable', () ->
-    #   expect(countdown).withArgs('2015-01-01', 'I am a string').to.throwException InvalidDateError
+    # it 'should give "1 minute" when two dates have 1 minute of difference between them', () ->
+    #   expect(countdown('2014-07-03T21:47:41', '2014-07-03T21:46:41')).to.be '1 minute left'
     #   return
 
-    # it 'should throw exception when any of initial 2 arguments is not a date', () ->
-    #   date = parse_date '2014-07-01'
-    #   expect(countdown(date1, date2)).to.throwException('Invalid range.');
+    # it 'should give "59 minutes" when two dates have 59 minutes of difference between them', () ->
+    #   expect(countdown('2014-07-03T22:46:40', '2014-07-03T21:46:41')).to.be '59 minutes left'
+    #   return
+
+    # it 'should give "1 hour" when two dates have 1 hour of difference between them', () ->
+    #   expect(countdown('2014-07-03T22:46:41', '2014-07-03T21:46:41')).to.be '1 hour left'
+    #   return
+
+    # it 'should return "1 year left" when two dates have 1 year of difference between them', () ->
+    #   expect(countdown('2015-08-03T21:46:43', '2014-07-03T21:46:42')).to.be '1 year left'
+    #   return
+
+    # it 'should return "5 years left" when two dates have 1 year of difference between them', () ->
+    #   expect(countdown('2020-04-03T21:46:43', '2014-07-03T21:46:42')).to.be '5 years left'
+    #   return
+
+    # it 'should give "1 second" when two dates have 1 second of difference between them', () ->
+    #   expect(countdown('2014-07-03T21:46:43', '2014-07-03T21:46:42')).to.be '1 second left'
     #   return
 
     return
